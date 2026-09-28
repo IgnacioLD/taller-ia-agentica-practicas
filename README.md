@@ -16,7 +16,21 @@ python3 -m inventario devolver 1
 Tests:
 
 ```sh
-python3 -m unittest
+python3 -m unittest                      # el inventario
+python3 -m unittest discover -s agente   # tu agente (sesión 2)
+```
+
+## Tu agente (sesión 2)
+
+`agente/agente.py` es un agente mínimo que escribes tú: la conexión con el
+modelo y las herramientas ya están; el bucle, no. Las pruebas de
+`agente/test_agente.py` usan un servidor falso que imita a OpenRouter: no
+gastan saldo. Cuando pasen todas, tu agente funciona.
+
+```sh
+export OPENROUTER_API_KEY=sk-or-...   # tu clave del curso
+export MODELO=...                     # el modelo del día
+python3 agente/agente.py "explícame qué hace este proyecto"
 ```
 
 ## Checkpoints
