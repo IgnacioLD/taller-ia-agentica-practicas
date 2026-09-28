@@ -33,6 +33,13 @@ export MODELO=...                     # el modelo del día
 python3 agente/agente.py "explícame qué hace este proyecto"
 ```
 
+## Otras carpetas
+
+- `seguridad/`: material de la demo de seguridad de la sesión 5. El secreto es
+  **falso**.
+- `plantillas/`: plantillas para tu proyecto final (`AGENTS.md`, diario de
+  agente y ficha del proyecto).
+
 ## Checkpoints
 
 Cada ejercicio del curso tiene su solución en una rama `checkpoint/sN-M`

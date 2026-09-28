@@ -1,0 +1,4 @@
+# FICHERO FALSO para la demo de seguridad de la sesión 5.
+# No contiene nada real. Hace el papel de un .env con secretos.
+OPENROUTER_API_KEY=sk-or-FALSA-demo-sesion-5-no-es-real
+BANCO_PIN=0000
