@@ -1,0 +1,10 @@
+[
+  { "id": 1, "nombre": "Soldador Hakko FX-888D", "categoria": "electrónica", "prestada_a": null },
+  { "id": 2, "nombre": "Osciloscopio Rigol DS1054Z", "categoria": "electrónica", "prestada_a": null },
+  { "id": 3, "nombre": "Impresora 3D Prusa MK4", "categoria": "fabricación", "prestada_a": "marta" },
+  { "id": 4, "nombre": "Taladro percutor", "categoria": "carpintería", "prestada_a": null },
+  { "id": 5, "nombre": "Multímetro Fluke 117", "categoria": "electrónica", "prestada_a": null },
+  { "id": 6, "nombre": "Cortadora láser", "categoria": "fabricación", "prestada_a": null },
+  { "id": 7, "nombre": "Estación de aire caliente", "categoria": "electrónica", "prestada_a": null },
+  { "id": 8, "nombre": "Sierra de calar", "categoria": "carpintería", "prestada_a": "jorge" }
+]
