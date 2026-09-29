@@ -120,19 +120,19 @@ def llamar_modelo(cliente: OpenAI, mensajes: list, modelo: str, vuelta: int):
 def agente(tarea: str, cliente: OpenAI, modelo: str = MODELO) -> str:
     mensajes = [{"role": "system", "content": SISTEMA}, {"role": "user", "content": tarea}]
 
-    # EJERCICIO: escribe el bucle del agente (unas 10 líneas).
-    # En cada vuelta, como mucho MAX_VUELTAS:
-    #   1. Llama al modelo: llamar_modelo(cliente, mensajes, modelo, vuelta).
-    #      Su mensaje está en respuesta.choices[0].message.
-    #   2. Añádelo a `mensajes` con mensaje.model_dump(exclude_none=True):
-    #      la conversación crece en cada vuelta.
-    #   3. Si no pide herramientas (mensaje.tool_calls está vacío), ha
-    #      terminado: devuelve mensaje.content.
-    #   4. Si pide, ejecuta cada llamada con ejecutar_herramienta(llamada) y
-    #      añade el resultado a `mensajes`:
-    #      {"role": "tool", "tool_call_id": llamada.id, "content": resultado}
-    # Si se acaban las vueltas, devuelve un aviso de que no ha terminado.
-    raise NotImplementedError("escribe el bucle del agente")
+    for vuelta in range(1, MAX_VUELTAS + 1):
+        respuesta = llamar_modelo(cliente, mensajes, modelo, vuelta)
+        mensaje = respuesta.choices[0].message
+        mensajes.append(mensaje.model_dump(exclude_none=True))  # la conversación crece
+
+        if not mensaje.tool_calls:
+            return mensaje.content or ""
+
+        for llamada in mensaje.tool_calls:
+            resultado = ejecutar_herramienta(llamada)
+            mensajes.append({"role": "tool", "tool_call_id": llamada.id, "content": resultado})
+
+    return f"He llegado al límite de {MAX_VUELTAS} vueltas sin terminar."
 
 
 def main() -> None:
