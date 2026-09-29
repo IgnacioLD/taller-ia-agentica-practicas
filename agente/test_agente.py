@@ -1,108 +1,92 @@
-"""Pruebas del agente contra un servidor falso que imita a OpenRouter.
+"""Pruebas del agente con un cliente falso: no llaman a ningún modelo ni gastan
+saldo. Cuando pasen todas, tu bucle funciona: `uv run pytest agente`."""
 
-No gastan saldo ni necesitan clave. Ejecuta:
-    python3 -m unittest discover -s agente
-"""
-
+import copy
 import json
-import os
-import sys
-import threading
-import unittest
-from http.server import BaseHTTPRequestHandler, HTTPServer
-from pathlib import Path
-from unittest import mock
+from types import SimpleNamespace
 
-sys.path.insert(0, str(Path(__file__).parent))
-import agente  # noqa: E402
+from openai.types.chat import ChatCompletion
+
+from agente import agente as ag
 
 
-class ServidorFalso:
-    """Devuelve, en orden, las respuestas que le digas y guarda lo que recibe."""
+def respuesta(mensaje: dict) -> ChatCompletion:
+    return ChatCompletion.model_validate({
+        "id": "falsa",
+        "object": "chat.completion",
+        "created": 0,
+        "model": "falso",
+        "choices": [{"index": 0, "finish_reason": "stop", "message": {"role": "assistant", **mensaje}}],
+    })
 
-    def __init__(self, respuestas):
+
+def texto(contenido: str) -> ChatCompletion:
+    return respuesta({"content": contenido})
+
+
+def pide(nombre: str, argumentos: dict, id: str = "llamada_1") -> ChatCompletion:
+    return respuesta({
+        "content": None,
+        "tool_calls": [{"id": id, "type": "function", "function": {"name": nombre, "arguments": json.dumps(argumentos)}}],
+    })
+
+
+class ClienteFalso:
+    """Imita a cliente.chat.completions.create y guarda lo que se le manda."""
+
+    def __init__(self, *respuestas):
         self.respuestas = list(respuestas)
-        self.recibido = []
-        servidor = self
+        self.peticiones = []
+        self.chat = SimpleNamespace(completions=SimpleNamespace(create=self.create))
 
-        class Manejador(BaseHTTPRequestHandler):
-            def do_POST(self):
-                largo = int(self.headers["Content-Length"])
-                servidor.recibido.append(json.loads(self.rfile.read(largo)))
-                cuerpo = json.dumps(servidor.respuestas.pop(0)).encode()
-                self.send_response(200)
-                self.send_header("Content-Type", "application/json")
-                self.end_headers()
-                self.wfile.write(cuerpo)
-
-            def log_message(self, *args):
-                pass
-
-        self.http = HTTPServer(("127.0.0.1", 0), Manejador)
-        threading.Thread(target=self.http.serve_forever, daemon=True).start()
-        self.url = f"http://127.0.0.1:{self.http.server_port}/"
-
-    def cerrar(self):
-        self.http.shutdown()
+    def create(self, **peticion):
+        self.peticiones.append(copy.deepcopy(peticion["messages"]))
+        return self.respuestas.pop(0) if len(self.respuestas) > 1 else self.respuestas[0]
 
 
-def texto(contenido):
-    return {"choices": [{"message": {"role": "assistant", "content": contenido}}], "usage": {"cost": 0.001}}
+def test_responde_sin_herramientas():
+    cliente = ClienteFalso(texto("Es un inventario."))
+    assert ag.agente("¿qué es esto?", cliente) == "Es un inventario."
+    assert len(cliente.peticiones) == 1
 
 
-def pide(nombre, argumentos, id="llamada-1"):
-    return {
-        "choices": [{"message": {"role": "assistant", "content": None, "tool_calls": [
-            {"id": id, "type": "function", "function": {"name": nombre, "arguments": json.dumps(argumentos)}}
-        ]}}],
-        "usage": {"cost": 0.001},
-    }
+def test_ejecuta_la_herramienta_y_le_devuelve_el_resultado():
+    cliente = ClienteFalso(pide("leer_fichero", {"ruta": "pyproject.toml"}), texto("Hecho."))
+    assert ag.agente("lee el pyproject", cliente) == "Hecho."
+    resultado = cliente.peticiones[1][-1]
+    assert resultado["role"] == "tool"
+    assert resultado["tool_call_id"] == "llamada_1"
+    assert 'name = "inventario"' in resultado["content"]
 
 
-class TestAgente(unittest.TestCase):
-    def arrancar(self, respuestas):
-        self.servidor = ServidorFalso(respuestas)
-        self.addCleanup(self.servidor.cerrar)
-        entorno = {"OPENROUTER_API_KEY": "clave-falsa", "MODELO": "modelo/falso"}
-        parches = [mock.patch.dict(os.environ, entorno), mock.patch.object(agente, "API", self.servidor.url)]
-        for p in parches:
-            p.start()
-            self.addCleanup(p.stop)
-
-    def test_sin_herramientas_devuelve_la_respuesta(self):
-        self.arrancar([texto("hola")])
-        self.assertEqual(agente.agente("saluda"), "hola")
-
-    def test_usa_una_herramienta_y_ve_el_resultado(self):
-        self.arrancar([pide("leer_fichero", {"ruta": "README.md"}), texto("es un inventario")])
-        self.assertEqual(agente.agente("¿qué es esto?"), "es un inventario")
-        # En la segunda llamada va el resultado de la herramienta: así "ve".
-        segunda = self.servidor.recibido[1]["messages"]
-        self.assertEqual(segunda[-1]["role"], "tool")
-        self.assertIn("Inventario del hackerspace", segunda[-1]["content"])
-
-    def test_la_conversacion_crece_en_cada_vuelta(self):
-        self.arrancar([pide("leer_fichero", {"ruta": "README.md"}), texto("listo")])
-        agente.agente("tarea")
-        primera, segunda = (len(r["messages"]) for r in self.servidor.recibido)
-        self.assertGreater(segunda, primera)
-
-    def test_pide_permiso_antes_de_ejecutar(self):
-        self.arrancar([pide("ejecutar", {"comando": "echo peligro"}), texto("vale")])
-        with mock.patch("builtins.input", return_value="n"):
-            agente.agente("ejecuta algo")
-        resultado = self.servidor.recibido[1]["messages"][-1]["content"]
-        self.assertIn("no ha permitido", resultado)
-
-    def test_un_error_de_herramienta_no_rompe_el_bucle(self):
-        self.arrancar([pide("leer_fichero", {"ruta": "no-existe.txt"}), texto("no estaba")])
-        self.assertEqual(agente.agente("lee"), "no estaba")
-        self.assertIn("Error", self.servidor.recibido[1]["messages"][-1]["content"])
-
-    def test_para_al_llegar_al_limite_de_vueltas(self):
-        self.arrancar([pide("leer_fichero", {"ruta": "README.md"}, id=str(i)) for i in range(agente.MAX_VUELTAS)])
-        self.assertIn("límite", agente.agente("no acabes nunca"))
+def test_la_conversacion_crece_en_cada_vuelta():
+    cliente = ClienteFalso(pide("leer_fichero", {"ruta": "pyproject.toml"}), texto("Hecho."))
+    ag.agente("lee el pyproject", cliente)
+    primera, segunda = cliente.peticiones
+    # La segunda llamada lleva todo lo anterior más la petición del modelo y el resultado.
+    assert segunda[: len(primera)] == primera
+    assert len(segunda) == len(primera) + 2
 
 
-if __name__ == "__main__":
-    unittest.main()
+def test_para_en_el_limite_de_vueltas():
+    cliente = ClienteFalso(pide("leer_fichero", {"ruta": "pyproject.toml"}))  # nunca termina
+    final = ag.agente("no pares nunca", cliente)
+    assert len(cliente.peticiones) == ag.MAX_VUELTAS
+    assert "límite" in final
+
+
+def test_un_error_de_herramienta_vuelve_al_modelo():
+    cliente = ClienteFalso(pide("leer_fichero", {"ruta": "no-existe.txt"}), texto("No está."))
+    assert ag.agente("lee un fichero que no existe", cliente) == "No está."
+    assert cliente.peticiones[1][-1]["content"].startswith("Error:")
+
+
+def test_no_lee_fuera_del_proyecto():
+    assert ag.leer_fichero("../../../../etc/hosts").startswith("Error:")
+
+
+def test_pide_permiso_antes_de_ejecutar(monkeypatch, tmp_path):
+    monkeypatch.setattr("builtins.input", lambda _: "n")
+    marca = tmp_path / "ejecutado"
+    assert "no ha permitido" in ag.ejecutar(f"touch {marca}")
+    assert not marca.exists()

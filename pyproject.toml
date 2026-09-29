@@ -1,0 +1,29 @@
+[project]
+name = "inventario"
+version = "0.1.0"
+description = "Inventario de herramientas del Hackerspace Valencia. Repo de prácticas del curso de IA agéntica."
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "mcp>=2.2.0",
+    "openai>=3.22.0",
+]
+
+[project.scripts]
+inventario = "inventario.__main__:main"
+inventario-mcp = "inventario.servidor_mcp:main"
+
+[build-system]
+requires = ["uv_build>=0.12,<0.13"]
+build-backend = "uv_build"
+
+[tool.pytest.ini_options]
+# `uv run pytest` prueba el inventario; el agente de la sesión 2 tiene sus
+# propias pruebas: `uv run pytest agente`.
+testpaths = ["tests"]
+pythonpath = ["."]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]

@@ -2,7 +2,7 @@
 
 **Reportado por:** un socio
 
-Si busco `python3 -m inventario buscar " soldador "` (con espacios, por ejemplo
+Si busco `uv run inventario buscar " soldador "` (con espacios, por ejemplo
 al copiar y pegar), no sale nada. Debería encontrar el soldador.
 
 <!--

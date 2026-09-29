@@ -9,5 +9,5 @@
 - **Modelo y harness**: <!-- p. ej. opencode con ... -->
 - **Qué salió bien**:
 - **Qué salió mal y cómo lo arreglé**:
-- **Coste**: <!-- de openrouter.ai/activity -->
+- **Coste**: <!-- `opencode stats`, o openrouter.ai/activity -->
 - **Lo que haría distinto**:

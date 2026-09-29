@@ -1,6 +1,6 @@
 # Mi proyecto final
 
-<!-- Rellénalo en la sesión 6. Cabe en una pantalla. -->
+<!-- Rellénalo al final de la sesión 2. Cabe en una pantalla. -->
 
 ## En una frase
 

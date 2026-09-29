@@ -4,47 +4,48 @@ Repo de prácticas del curso de IA agéntica para socios del Hackerspace
 Valencia. Es un gestor mínimo del inventario de herramientas: qué hay y quién
 lo tiene.
 
-Solo necesita **Python 3.10 o superior**. No tiene dependencias.
+## Arrancar
+
+Necesitas [uv](https://docs.astral.sh/uv/getting-started/installation/), que
+instala el Python que haga falta.
 
 ```sh
-python3 -m inventario listar
-python3 -m inventario buscar soldador
-python3 -m inventario prestar 1 tu-nombre
-python3 -m inventario devolver 1
+uv sync                          # instala Python y las dependencias
+uv run inventario listar
+uv run inventario buscar soldador
+uv run pytest                    # tests del inventario
 ```
 
-Tests:
+## Qué hay
 
-```sh
-python3 -m unittest                      # el inventario
-python3 -m unittest discover -s agente   # tu agente (sesión 2)
-```
+| Carpeta | Qué es | Sesión |
+| --- | --- | --- |
+| `src/inventario/` | El inventario: lógica (`core.py`) y línea de comandos | 1 |
+| `tests/` | Tests con pytest. En `main` fallan 2 a propósito | 1 |
+| `agente/` | Tu propio agente: el bucle lo escribes tú | 2 |
+| `src/inventario/servidor_mcp.py` | Servidor MCP del inventario | 2 |
+| `seguridad/` | Material de la demo de prompt injection. El secreto es **falso** | 2 |
+| `plantillas/` | `AGENTS.md`, diario de agente y ficha de tu proyecto final | 2 |
+| `.devcontainer/` | Sandbox: el agente dentro de un contenedor que solo ve este repo | 2 |
 
 ## Tu agente (sesión 2)
 
-`agente/agente.py` es un agente mínimo que escribes tú: la conexión con el
-modelo y las herramientas ya están; el bucle, no. Las pruebas de
-`agente/test_agente.py` usan un servidor falso que imita a OpenRouter: no
-gastan saldo. Cuando pasen todas, tu agente funciona.
+`agente/agente.py` habla con OpenRouter con el SDK de OpenAI. Las
+herramientas y la llamada al modelo ya están; el bucle, no. Sus pruebas usan un
+cliente falso y no gastan saldo: cuando pasen, tu bucle funciona.
 
 ```sh
+uv run pytest agente
 export OPENROUTER_API_KEY=sk-or-...   # tu clave del curso
-export MODELO=...                     # el modelo del día
-python3 agente/agente.py "explícame qué hace este proyecto"
+uv run agente/agente.py "explícame qué hace este proyecto"
 ```
 
-## Otras carpetas
+## Soluciones
 
-- `seguridad/`: material de la demo de seguridad de la sesión 5. El secreto es
-  **falso**.
-- `plantillas/`: plantillas para tu proyecto final (`AGENTS.md`, diario de
-  agente y ficha del proyecto).
-
-## Checkpoints
-
-Cada ejercicio del curso tiene su solución en una rama `checkpoint/sN-M`
-(sesión N, ejercicio M). Si te quedas atrás:
+Cada ejercicio tiene su solución en una rama `solucion/sN-M` (sesión N,
+ejercicio M). Son acumulativas: cada una incluye las anteriores. Si te quedas
+atrás:
 
 ```sh
-git switch checkpoint/s1-2
+git switch solucion/s1-2
 ```

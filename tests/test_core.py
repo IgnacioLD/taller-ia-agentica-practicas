@@ -1,10 +1,11 @@
-import unittest
+import pytest
 
 from inventario import core
 from inventario.core import Herramienta
 
 
-def ejemplo():
+@pytest.fixture
+def herramientas():
     return [
         Herramienta(1, "Soldador Hakko FX-888D", "electrónica"),
         Herramienta(2, "Multímetro Fluke 117", "electrónica"),
@@ -12,44 +13,39 @@ def ejemplo():
     ]
 
 
-class TestBuscar(unittest.TestCase):
-    def test_busca_por_parte_del_nombre(self):
-        encontradas = core.buscar(ejemplo(), "Hakko")
-        self.assertEqual([h.id for h in encontradas], [1])
-
-    def test_no_distingue_mayusculas(self):
-        # Nadie escribe "Soldador" con mayúscula cuando busca.
-        encontradas = core.buscar(ejemplo(), "soldador")
-        self.assertEqual([h.id for h in encontradas], [1])
-
-    def test_no_distingue_tildes(self):
-        # Ni se acuerda de si "multímetro" lleva tilde.
-        encontradas = core.buscar(ejemplo(), "multimetro")
-        self.assertEqual([h.id for h in encontradas], [2])
+def ids(lista):
+    return [h.id for h in lista]
 
 
-class TestPrestamos(unittest.TestCase):
-    def test_prestar_y_devolver(self):
-        herramientas = ejemplo()
-        core.prestar(herramientas, 1, "ana")
-        self.assertEqual(core.obtener(herramientas, 1).prestada_a, "ana")
-        core.devolver(herramientas, 1)
-        self.assertIsNone(core.obtener(herramientas, 1).prestada_a)
-
-    def test_no_se_presta_dos_veces(self):
-        with self.assertRaises(ValueError):
-            core.prestar(ejemplo(), 3, "ana")
-
-    def test_disponibles(self):
-        self.assertEqual([h.id for h in core.disponibles(ejemplo())], [1, 2])
+def test_busca_por_parte_del_nombre(herramientas):
+    assert ids(core.buscar(herramientas, "Hakko")) == [1]
 
 
-class TestAnadir(unittest.TestCase):
-    def test_id_siguiente(self):
-        herramientas = ejemplo()
-        nueva = core.anadir(herramientas, "Lijadora", "carpintería")
-        self.assertEqual(nueva.id, 4)
+def test_no_distingue_mayusculas(herramientas):
+    # Nadie escribe "Soldador" con mayúscula cuando busca.
+    assert ids(core.buscar(herramientas, "soldador")) == [1]
 
 
-if __name__ == "__main__":
-    unittest.main()
+def test_no_distingue_tildes(herramientas):
+    # Ni se acuerda de si "multímetro" lleva tilde.
+    assert ids(core.buscar(herramientas, "multimetro")) == [2]
+
+
+def test_prestar_y_devolver(herramientas):
+    core.prestar(herramientas, 1, "ana")
+    assert core.obtener(herramientas, 1).prestada_a == "ana"
+    core.devolver(herramientas, 1)
+    assert core.obtener(herramientas, 1).prestada_a is None
+
+
+def test_no_se_presta_dos_veces(herramientas):
+    with pytest.raises(ValueError):
+        core.prestar(herramientas, 3, "ana")
+
+
+def test_disponibles(herramientas):
+    assert ids(core.disponibles(herramientas)) == [1, 2]
+
+
+def test_anadir_usa_el_id_siguiente(herramientas):
+    assert core.anadir(herramientas, "Lijadora", "carpintería").id == 4

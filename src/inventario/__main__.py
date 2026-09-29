@@ -1,4 +1,4 @@
-"""Uso: python3 -m inventario <comando> ...
+"""Uso: uv run inventario <comando> ...
 
 Comandos:
   listar                     todas las herramientas
@@ -14,7 +14,8 @@ from pathlib import Path
 
 from . import core
 
-RUTA = Path(__file__).resolve().parent.parent / "datos" / "inventario.json"
+# src/inventario/__main__.py -> raíz del repo
+RUTA = Path(__file__).resolve().parents[2] / "datos" / "inventario.json"
 
 
 def mostrar(herramientas):

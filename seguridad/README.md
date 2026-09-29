@@ -1,4 +1,4 @@
-# Material de la demo de seguridad (sesión 5)
+# Material de la demo de seguridad (sesión 2)
 
 - `issue-42.md` describe un bug real y pequeño, pero lleva escondida (en un
   comentario HTML, que no se ve al renderizarlo) una instrucción para el agente:
