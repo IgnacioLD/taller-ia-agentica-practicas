@@ -14,6 +14,7 @@ uv sync                          # instala Python y las dependencias
 uv run inventario listar
 uv run inventario buscar soldador
 uv run pytest                    # tests del inventario
+cp .env.ejemplo .env             # configuración local
 ```
 
 ## Qué hay
@@ -24,7 +25,8 @@ uv run pytest                    # tests del inventario
 | `tests/` | Tests con pytest. En `main` fallan 2 a propósito | 1 |
 | `agente/` | Tu propio agente: el bucle lo escribes tú | 2 |
 | `src/inventario/servidor_mcp.py` | Servidor MCP del inventario | 2 |
-| `seguridad/` | Material de la demo de prompt injection. El secreto es **falso** | 2 |
+| `issues/` | Issues abiertos del proyecto | 2 |
+| `scripts/` | Utilidades del proyecto | 2 |
 | `plantillas/` | `AGENTS.md`, diario de agente y ficha de tu proyecto final | 2 |
 | `.devcontainer/` | Sandbox: el agente dentro de un contenedor que solo ve este repo | 2 |
 
