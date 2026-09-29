@@ -28,11 +28,17 @@ def listar() -> list[dict]:
     return [asdict(h) for h in core.cargar(RUTA)]
 
 
-# EJERCICIO: añade dos herramientas más, de solo lectura como `listar`:
-#   - buscar(texto): las herramientas cuyo nombre contiene `texto`.
-#   - disponibles(): las que no están prestadas.
-# La docstring es lo que lee el modelo para decidir cuándo usar cada una:
-# escríbela pensando en él.
+@servidor.tool(annotations=SOLO_LECTURA)
+def buscar(texto: str) -> list[dict]:
+    """Herramientas cuyo nombre contiene `texto`, sin distinguir mayúsculas ni
+    tildes. Úsala antes que `listar` cuando busques algo concreto."""
+    return [asdict(h) for h in core.buscar(core.cargar(RUTA), texto)]
+
+
+@servidor.tool(annotations=SOLO_LECTURA)
+def disponibles() -> list[dict]:
+    """Herramientas que no están prestadas ahora mismo."""
+    return [asdict(h) for h in core.disponibles(core.cargar(RUTA))]
 
 
 def main() -> None:
