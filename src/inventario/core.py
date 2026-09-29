@@ -40,7 +40,7 @@ def _normalizar(texto: str) -> str:
 
 def buscar(herramientas: list[Herramienta], texto: str) -> list[Herramienta]:
     """Herramientas cuyo nombre contiene `texto`, sin distinguir mayúsculas ni tildes."""
-    buscado = _normalizar(texto)
+    buscado = _normalizar(texto.strip())  # issue 42: espacios de más al copiar y pegar
     return [h for h in herramientas if buscado in _normalizar(h.nombre)]
 
 
