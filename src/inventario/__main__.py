@@ -6,13 +6,14 @@ Comandos:
   prestar <id> <socio>       prestar una herramienta
   devolver <id>              devolver una herramienta
   anadir <nombre> <categoria>
+  exportar                   el inventario en CSV (uv run inventario exportar > inventario.csv)
 """
 
 import argparse
 import sys
 from pathlib import Path
 
-from . import core
+from . import core, exportar
 
 # src/inventario/__main__.py -> raíz del repo
 RUTA = Path(__file__).resolve().parents[2] / "datos" / "inventario.json"
@@ -38,6 +39,7 @@ def main(argv=None):
     p = sub.add_parser("anadir")
     p.add_argument("nombre")
     p.add_argument("categoria")
+    sub.add_parser("exportar")
     args = parser.parse_args(argv)
 
     herramientas = core.cargar(RUTA)
@@ -58,6 +60,8 @@ def main(argv=None):
             h = core.anadir(herramientas, args.nombre, args.categoria)
             core.guardar(RUTA, herramientas)
             print(f"añadida con id {h.id}")
+        elif args.comando == "exportar":
+            sys.stdout.write(exportar.a_csv(herramientas))
     except (KeyError, ValueError) as err:
         print(f"error: {err.args[0]}", file=sys.stderr)
         return 1

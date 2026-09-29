@@ -67,3 +67,13 @@ def devolver(herramientas: list[Herramienta], id: int) -> Herramienta:
 
 def disponibles(herramientas: list[Herramienta]) -> list[Herramienta]:
     return [h for h in herramientas if h.prestada_a is None]
+
+
+def por_categoria(herramientas: list[Herramienta]) -> dict[str, dict[str, int]]:
+    """Por categoría, cuántas hay y cuántas están disponibles, ordenado por nombre."""
+    resumen: dict[str, dict[str, int]] = {}
+    for h in sorted(herramientas, key=lambda h: h.categoria):
+        cuenta = resumen.setdefault(h.categoria, {"total": 0, "disponibles": 0})
+        cuenta["total"] += 1
+        cuenta["disponibles"] += h.prestada_a is None
+    return resumen

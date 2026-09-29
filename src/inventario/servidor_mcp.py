@@ -41,5 +41,11 @@ def disponibles() -> list[dict]:
     return [asdict(h) for h in core.disponibles(core.cargar(RUTA))]
 
 
+@servidor.tool(annotations=SOLO_LECTURA)
+def categorias() -> dict[str, dict[str, int]]:
+    """Resumen por categoría: cuántas herramientas hay y cuántas están disponibles."""
+    return core.por_categoria(core.cargar(RUTA))
+
+
 def main() -> None:
     servidor.run()

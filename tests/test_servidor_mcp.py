@@ -22,7 +22,7 @@ async def llamar(nombre: str, argumentos: dict | None = None) -> list[dict]:
 async def test_herramientas_de_solo_lectura():
     async with Client(servidor) as cliente:
         herramientas = (await cliente.list_tools()).tools
-    assert {h.name for h in herramientas} == {"listar", "buscar", "disponibles"}
+    assert {h.name for h in herramientas} == {"listar", "buscar", "disponibles", "categorias"}
     assert all(h.annotations.read_only_hint for h in herramientas)
 
 
