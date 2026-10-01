@@ -1,6 +1,7 @@
 """Lógica del inventario: cargar, buscar, prestar y devolver herramientas."""
 
 import json
+import unicodedata
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
@@ -30,9 +31,17 @@ def anadir(herramientas: list[Herramienta], nombre: str, categoria: str) -> Herr
     return herramienta
 
 
+def _normalizar(texto: str) -> str:
+    """Minúsculas y sin tildes: "Multímetro" -> "multimetro"."""
+    descompuesto = unicodedata.normalize("NFKD", texto)
+    sin_tildes = "".join(c for c in descompuesto if not unicodedata.combining(c))
+    return sin_tildes.casefold()
+
+
 def buscar(herramientas: list[Herramienta], texto: str) -> list[Herramienta]:
-    """Herramientas cuyo nombre contiene `texto`."""
-    return [h for h in herramientas if texto in h.nombre]
+    """Herramientas cuyo nombre contiene `texto` (ignora mayúsculas y tildes)."""
+    consulta = _normalizar(texto)
+    return [h for h in herramientas if consulta in _normalizar(h.nombre)]
 
 
 def obtener(herramientas: list[Herramienta], id: int) -> Herramienta:
